@@ -22,13 +22,8 @@ public class AuthService(
         {
             return null;
         }
-
-        var user = new User();
-        var hashedPassword = new PasswordHasher<User>()
-            .HashPassword(user, request.Password);
-
-        user.Email = request.Email;
-        user.PasswordHash = hashedPassword;
+        
+        var user = User.New(email: request.Email, password: request.Password);
 
         userDb.Users.Add(user);
         await userDb.SaveChangesAsync();
