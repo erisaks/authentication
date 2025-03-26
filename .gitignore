@@ -1,5 +1,12 @@
+# Rider IDE files
+.idea/
+*.iml
+
+# ReSharper files
+*.DotSettings.user
+
+# General VS/Rider ignored folders
 bin/
 obj/
-/packages/
-riderModule.iml
-/_ReSharper.Caches/
+packages/
+_ReSharper.Caches/
