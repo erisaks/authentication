@@ -13,7 +13,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddDbContext<UserDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("UserDatabase"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("UserDatabaseMac"));
 });
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -39,6 +39,10 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
+
+    // using var scope = app.Services.CreateScope();
+    // var db = scope.ServiceProvider.GetRequiredService<UserDbContext>();
+    // db.Database.EnsureCreated();
 }
 
 app.UseHttpsRedirection();
