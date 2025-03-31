@@ -26,9 +26,17 @@ public class AuthenticationController(IAuthService authService) : ControllerBase
     [Route("login")]
     public async Task<IActionResult> Login(UserDto request)
     {
-        var token = await authService.Login(request);
-        if (string.IsNullOrEmpty(token)) return BadRequest();
-        return Ok(token);
+        var response = await authService.Login(request);
+        return Ok(response);
+    }
+
+    [HttpPost]
+    [Route("refresh-token")]
+    public async Task<IActionResult> RefreshToken(RefreshTokenRequestDto request)
+    {
+        var response = await authService.RefreshTokensAsync(request);
+        if (response is null) return Unauthorized("Invalid refresh token");
+        return Ok(response);
     }
 
     [Authorize]
@@ -36,5 +44,12 @@ public class AuthenticationController(IAuthService authService) : ControllerBase
     public IActionResult AuthenticatedOnlyEndpoint()
     {
         return Ok("You are authenticated");
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("admin-only")]
+    public IActionResult AdminOnlyEndpoint()
+    {
+        return Ok("You are an administrator");
     }
 }

@@ -6,5 +6,6 @@ namespace Authentication.Contracts;
 public interface IAuthService
 {
     Task<User?> Register(UserDto request);
-    Task<string?> Login(UserDto request);
+    Task<TokenResponseDto?> Login(UserDto request);
+    Task<TokenResponseDto?> RefreshTokensAsync(RefreshTokenRequestDto request);
 }

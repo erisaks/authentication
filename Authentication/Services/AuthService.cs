@@ -1,5 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Authentication.Contracts;
 using Authentication.Data;
@@ -31,15 +32,21 @@ public class AuthService(
         return user;
     }
 
-    public async Task<string?> Login(UserDto request)
+    public async Task<TokenResponseDto?> Login(UserDto request)
     {
         var user = await userDb.Users.FirstOrDefaultAsync(x => x.Email == request.Email);
         if (user is null) return null;
 
         if (!VerifyPassword(user, request.Password)) return null;
+        
+        return await CreateTokens(user);
+    }
 
-        var token = CreateToken(user);
-        return token;
+    public async Task<TokenResponseDto?> RefreshTokensAsync(RefreshTokenRequestDto request)
+    {
+        var user = await ValidateRefreshTokenAsync(request);
+        if (user is null) return null;
+        return await CreateTokens(user);
     }
     #endregion
     
@@ -61,7 +68,8 @@ public class AuthService(
         var claims = new List<Claim>
         {
             new(ClaimTypes.Name, user.Email),
-            new(ClaimTypes.NameIdentifier, user.Id.ToString())
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Role, user.Role)
         };
 
         var key = new SymmetricSecurityKey(
@@ -77,6 +85,45 @@ public class AuthService(
             signingCredentials: credentials);
         
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private string GenerateRefreshToken()
+    {
+        var randomNumber = new byte[32];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomNumber);
+        return Convert.ToBase64String(randomNumber);
+    }
+    
+    private async Task<TokenResponseDto?> CreateTokens(User user)
+    {
+        return new TokenResponseDto
+        {
+            AccessToken = CreateToken(user),
+            RefreshToken = await GenerateAndSaveRefreshTokenAsync(user)
+        };
+    }
+
+    private async Task<string> GenerateAndSaveRefreshTokenAsync(User user)
+    {
+        var refreshToken = GenerateRefreshToken();
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddHours(1);
+        await userDb.SaveChangesAsync();
+        return refreshToken;
+    }
+
+    private async Task<User?> ValidateRefreshTokenAsync(RefreshTokenRequestDto request)
+    {
+        var user = await userDb.Users.FindAsync(request.UserId);
+        if (user is null 
+            || user.RefreshToken != request.RefreshToken 
+            || user.RefreshTokenExpiryTime < DateTime.UtcNow)
+        {
+            return null;
+        }
+
+        return user;
     }
     #endregion
 }

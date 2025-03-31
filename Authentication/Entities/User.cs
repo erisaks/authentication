@@ -8,6 +8,9 @@ public class User
     public Guid Id { get; set; }
     public string Email { get; set; }
     public string PasswordHash { get; set; }
+    public string Role { get; set; } = string.Empty;
+    public string? RefreshToken { get; set; }
+    public DateTime? RefreshTokenExpiryTime { get; set; }
     #endregion
 
     private User(
@@ -21,7 +24,9 @@ public class User
     }
     #region Public Entity Methods
 
-    public static User New(string email, string password)
+    public static User New(
+        string email, 
+        string password)
     {
         var user = new User(
             id: Guid.Empty,
