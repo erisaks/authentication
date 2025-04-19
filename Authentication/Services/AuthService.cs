@@ -26,7 +26,7 @@ public class AuthService(
              return new RegisterUserResponseDto(
                 success: false,
                 responseStatus: ResponseStatus.BadRequest,
-                errors: ["Failed to register user"]);;
+                errors: ["Failed to register user"]);
         }
         
         var user = User.New(email: request.Email, password: request.Password);
@@ -48,26 +48,28 @@ public class AuthService(
             email: user.Email);
     }
 
-    public async Task<TokenResponseDto?> Login(UserDto request)
+    public async Task<TokenResponseDto> Login(UserDto request)
     {
         var user = await userDb.Users.FirstOrDefaultAsync(x => x.Email == request.Email);
         if (user is null)
         {
-            return new LoginUserResponseDto(
+            return new TokenResponseDto(
                 success: false,
                 responseStatus: ResponseStatus.BadRequest,
                 errors: ["Invalid credentials"]);
         }
 
-        if (!VerifyPassword(user, request.Password)) return null;
+        if (!VerifyPassword(user, request.Password))
+        {
+            return new TokenResponseDto(success: false, responseStatus: ResponseStatus.Forbid);
+        }
         
         return await CreateTokens(user);
     }
 
-    public async Task<TokenResponseDto?> RefreshTokensAsync(RefreshTokenRequestDto request)
+    public async Task<TokenResponseDto> RefreshTokensAsync(RefreshTokenRequestDto request)
     {
         var user = await ValidateRefreshTokenAsync(request);
-        if (user is null) return null;
         return await CreateTokens(user);
     }
     #endregion
@@ -117,13 +119,28 @@ public class AuthService(
         return Convert.ToBase64String(randomNumber);
     }
     
-    private async Task<TokenResponseDto?> CreateTokens(User user)
+    private async Task<TokenResponseDto> CreateTokens(User? user)
     {
-        return new TokenResponseDto
+        if (user is null)
         {
-            AccessToken = CreateToken(user),
-            RefreshToken = await GenerateAndSaveRefreshTokenAsync(user)
-        };
+            return new TokenResponseDto(success: false, responseStatus: ResponseStatus.NotFound);
+        }
+        var accessToken = CreateToken(user);
+        var refreshToken = await GenerateAndSaveRefreshTokenAsync(user);
+
+        if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))
+        {
+            return new TokenResponseDto(
+                success: false,
+                responseStatus: ResponseStatus.BadRequest,
+                errors: ["Failed to generate tokens"]);
+        }
+        
+        return new TokenResponseDto(
+            success: true,
+            responseStatus: ResponseStatus.Ok,
+            accessToken: accessToken,
+            refreshToken: refreshToken);
     }
 
     private async Task<string> GenerateAndSaveRefreshTokenAsync(User user)

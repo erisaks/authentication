@@ -43,8 +43,13 @@ public class AuthenticationController(IAuthService authService) : ControllerBase
     public async Task<IActionResult> RefreshToken(RefreshTokenRequestDto request)
     {
         var response = await authService.RefreshTokensAsync(request);
-        if (response is null) return Unauthorized("Invalid refresh token");
-        return Ok(response);
+        return response.ResponseStatus switch
+        {
+            ResponseStatus.Forbid => Forbid(),
+            ResponseStatus.BadRequest => BadRequest(response),
+            ResponseStatus.Ok => Ok(response),
+            _ => BadRequest(response)
+        };
     }
 
     [Authorize]

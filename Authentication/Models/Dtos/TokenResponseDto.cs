@@ -1,7 +1,15 @@
-﻿namespace Authentication.Models.Dtos;
+﻿using Authentication.Models.Dtos.Responses;
+using Authentication.Models.Enums;
 
-public class TokenResponseDto
+namespace Authentication.Models.Dtos;
+
+public class TokenResponseDto(
+    bool success,
+    ResponseStatus responseStatus,
+    string? accessToken = null,
+    string? refreshToken = null,
+    string[]? errors = null) : BaseResponseDto(success, responseStatus, errors)
 {
-    public required string AccessToken { get; set; }
-    public required string RefreshToken { get; set; }
+    public string? AccessToken { get; set; } = accessToken;
+    public string? RefreshToken { get; set; } = refreshToken;
 }
