@@ -1,5 +1,6 @@
 ﻿using Authentication.Contracts;
 using Authentication.Models.Dtos;
+using Authentication.Models.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,13 +14,14 @@ public class AuthenticationController(IAuthService authService) : ControllerBase
     [Route("register")]
     public async Task<IActionResult> Register(UserDto request)
     {
-        var user = await authService.Register(request);
-        if (user is null)
+        var response = await authService.Register(request);
+        return response.ResponseStatus switch
         {
-            return BadRequest("Something went wrong");
-        }
-
-        return Ok(user);
+            ResponseStatus.Forbid => Forbid(),
+            ResponseStatus.BadRequest => BadRequest(response),
+            ResponseStatus.Ok => Ok(response),
+            _ => BadRequest(response)
+        };
     }
 
     [HttpPost]
@@ -27,7 +29,13 @@ public class AuthenticationController(IAuthService authService) : ControllerBase
     public async Task<IActionResult> Login(UserDto request)
     {
         var response = await authService.Login(request);
-        return Ok(response);
+        return response.ResponseStatus switch
+        {
+            ResponseStatus.Forbid => Forbid(),
+            ResponseStatus.BadRequest => BadRequest(response),
+            ResponseStatus.Ok => Ok(response),
+            _ => BadRequest(response)
+        };
     }
 
     [HttpPost]

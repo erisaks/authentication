@@ -6,6 +6,8 @@ using Authentication.Contracts;
 using Authentication.Data;
 using Authentication.Entities;
 using Authentication.Models.Dtos;
+using Authentication.Models.Dtos.Responses;
+using Authentication.Models.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -17,25 +19,45 @@ public class AuthService(
     IConfiguration configuration) : IAuthService
 {
     #region Public Methods
-    public async Task<User?> Register(UserDto request)
+    public async Task<RegisterUserResponseDto> Register(UserDto request)
     {
         if (await ValidateIfUserExistsAsync(request.Email))
         {
-            return null;
+             return new RegisterUserResponseDto(
+                success: false,
+                responseStatus: ResponseStatus.BadRequest,
+                errors: ["Failed to register user"]);;
         }
         
         var user = User.New(email: request.Email, password: request.Password);
 
         userDb.Users.Add(user);
-        await userDb.SaveChangesAsync();
+        var id = await userDb.SaveChangesAsync();
+        if (id == 0)
+        {
+            return new RegisterUserResponseDto(
+                success: false,
+                responseStatus: ResponseStatus.BadRequest,
+                errors: ["Failed to register user"]);
+        }
 
-        return user;
+        return new RegisterUserResponseDto(
+            success: true,
+            responseStatus: ResponseStatus.Ok,
+            id: user.Id.ToString(),
+            email: user.Email);
     }
 
     public async Task<TokenResponseDto?> Login(UserDto request)
     {
         var user = await userDb.Users.FirstOrDefaultAsync(x => x.Email == request.Email);
-        if (user is null) return null;
+        if (user is null)
+        {
+            return new LoginUserResponseDto(
+                success: false,
+                responseStatus: ResponseStatus.BadRequest,
+                errors: ["Invalid credentials"]);
+        }
 
         if (!VerifyPassword(user, request.Password)) return null;
         

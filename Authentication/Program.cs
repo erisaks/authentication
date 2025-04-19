@@ -39,10 +39,6 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
-
-    // using var scope = app.Services.CreateScope();
-    // var db = scope.ServiceProvider.GetRequiredService<UserDbContext>();
-    // db.Database.EnsureCreated();
 }
 
 app.UseHttpsRedirection();

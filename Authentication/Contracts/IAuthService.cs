@@ -1,11 +1,12 @@
-﻿using Authentication.Entities;
-using Authentication.Models.Dtos;
+﻿using Authentication.Models.Dtos;
+using Authentication.Models.Dtos.Responses;
 
 namespace Authentication.Contracts;
 
 public interface IAuthService
 {
-    Task<User?> Register(UserDto request);
+    Task<RegisterUserResponseDto> Register(UserDto request);
     Task<TokenResponseDto?> Login(UserDto request);
     Task<TokenResponseDto?> RefreshTokensAsync(RefreshTokenRequestDto request);
+
 }
