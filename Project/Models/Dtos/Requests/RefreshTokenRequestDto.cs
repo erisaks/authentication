@@ -1,4 +1,4 @@
-﻿namespace Authentication.Models.Dtos;
+﻿namespace Authentication.Models.Dtos.Requests;
 
 public class RefreshTokenRequestDto
 {

@@ -6,6 +6,7 @@ using Authentication.Contracts;
 using Authentication.Data;
 using Authentication.Entities;
 using Authentication.Models.Dtos;
+using Authentication.Models.Dtos.Requests;
 using Authentication.Models.Dtos.Responses;
 using Authentication.Models.Enums;
 using Microsoft.AspNetCore.Identity;

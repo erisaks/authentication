@@ -1,4 +1,5 @@
 ﻿using Authentication.Models.Dtos;
+using Authentication.Models.Dtos.Requests;
 using Authentication.Models.Dtos.Responses;
 
 namespace Authentication.Contracts;

@@ -1,5 +1,6 @@
 ﻿using Authentication.Contracts;
 using Authentication.Models.Dtos;
+using Authentication.Models.Dtos.Requests;
 using Authentication.Models.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

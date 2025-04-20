@@ -1,7 +1,7 @@
 ﻿using Authentication.Models.Dtos.Responses;
 using Authentication.Models.Enums;
 
-namespace Authentication.Models.Dtos;
+namespace Authentication.Models.Dtos.Responses;
 
 public class TokenResponseDto(
     bool success,
